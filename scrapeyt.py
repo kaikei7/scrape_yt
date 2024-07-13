@@ -1,24 +1,33 @@
 import scrapetube
-import json
 import requests
 
-title = str(input("title:"))
-#channel=f"https://yt.lemnoslife.com/channels?handle=@{title}"
-#channelid = json.loads(str(requests.get(channel).text))
-#channel_id=channelid["items"][0]["id"]
+def save_channel_videos_to_file(channel_username):
+    try:
+        # Ambil data video dari channel menggunakan scrapetube
+        videos = list(scrapetube.get_channel(channel_username=channel_username))
         
-videos = scrapetube.get_channel(channel_username=title)
-x = 0
-smr = []
-videos_list = list(videos)
-for i in range(len(videos_list)-1,-1,-1):
-    x+=1
-    str1=f"{videos_list[i]['title']['runs'][0]['text']}"
+        # Siapkan list untuk menyimpan hasil
+        video_info_list = []
         
-    str2="https://www.youtube.com/watch?v="+str(videos_list[i]['videoId'])
-           
-    smr.append(f"{x}. {str1} : {str2}")
-smr2 = '\n\n'.join(smr)
-with open(f"{title}.txt", "w", encoding="utf-8") as f:
-    f.write(f"{smr2}")
-    f.close()
+        # Iterasi terbalik dan ambil informasi dari setiap video
+        for i in range(len(videos) - 1, -1, -1):
+            video_title = videos[i]['title']['runs'][0]['text']
+            video_url = f"https://www.youtube.com/watch?v={videos[i]['videoId']}"
+            video_info_list.append(f"{len(videos) - i}. {video_title} : {video_url}")
+        
+        # Simpan ke file teks
+        filename = f"{channel_username}_videos.txt"
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write("\n\n".join(video_info_list))
+        
+        print(f"Berhasil menyimpan daftar video dari channel '{channel_username}' ke file {filename}.")
+    
+    except requests.exceptions.RequestException as e:
+        print(f"Error dalam melakukan request: {e}")
+    except (KeyError, IndexError) as e:
+        print(f"Error dalam parsing data: {e}")
+
+# Gunakan fungsi untuk menyimpan video dari channel tertentu
+if __name__ == "__main__":
+    channel_username = input("Masukkan username channel YouTube: ").strip()
+    save_channel_videos_to_file(channel_username)
